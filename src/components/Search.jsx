@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types'
+
 const Search = ({ searchTerm, setSearchTerm }) => {
   return (
     <div className='search'>
@@ -12,6 +14,10 @@ const Search = ({ searchTerm, setSearchTerm }) => {
       </div>
     </div>
   )
+}
+Search.propTypes = {
+  searchTerm: PropTypes.string.isRequired,
+  setSearchTerm: PropTypes.func.isRequired,
 }
 
 export default Search
