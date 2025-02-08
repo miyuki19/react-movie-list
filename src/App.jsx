@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Search from './components/Search'
 import Loading from './components/Loading'
 import Card from './components/Card'
+import { useDebounce } from 'react-use'
 
 const API_BASE_URL = 'https://api.themoviedb.org/3'
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY
@@ -18,6 +19,8 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [movies, setMovies] = useState([])
   const [page, setPage] = useState(1)
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm])
 
   const fetchMovies = async (page) => {
     setIsLoading(true)
@@ -29,7 +32,6 @@ const App = () => {
       if (response.ok) {
         const data = await response.json()
         setMovies((prevMovies) => [...prevMovies, ...data.results])
-        console.log(data)
       }
     } catch (error) {
       console.error(error)
@@ -37,6 +39,30 @@ const App = () => {
       setIsLoading(false)
     }
   }
+
+  const searchMovies = async () => {
+    setIsLoading(true)
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/search/movie?query=${encodeURIComponent(searchTerm)}`,
+        API_OPTIONS
+      )
+      if (response.ok) {
+        const data = await response.json()
+        setMovies(data.results)
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+      searchMovies()
+    }
+  }, [debouncedSearchTerm])
 
   useEffect(() => {
     fetchMovies(page)
@@ -66,7 +92,7 @@ const App = () => {
             <Loading />
           ) : (
             <ul>
-              {movies.map((movie) => (
+              {movies?.map((movie) => (
                 <Card movie={movie} key={movie.id} />
               ))}
             </ul>
